@@ -1,7 +1,7 @@
 import java.io.File
 
 fun main() {
-    val dictionary = loadDictionary() 
+    loadDictionary()
     while (true) {
         println("Меню:")
         println("1 – Учить слова")
@@ -18,6 +18,7 @@ fun main() {
         }
     }
 }
+
 fun loadDictionary() {
     val wordsFile = File("words.txt")
     val dictionary = mutableListOf<Word>()
@@ -31,8 +32,9 @@ fun loadDictionary() {
     }
     dictionary.forEach { println("${it.original} - ${it.translation} - ${it.correctAnswersCount}") }
 }
+
 data class Word(
     val original: String,
     val translation: String,
-    var correctAnswersCount:Int = 0
+    var correctAnswersCount: Int = 0
 )

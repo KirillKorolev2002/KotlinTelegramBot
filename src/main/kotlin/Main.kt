@@ -1,6 +1,5 @@
 fun main() {
-    val dictionary = loadDictionary() //Загрузка словаря
-
+    val dictionary = loadDictionary() //yflj l
     while (true) {
         println("Меню:")
         println("1 – Учить слова")

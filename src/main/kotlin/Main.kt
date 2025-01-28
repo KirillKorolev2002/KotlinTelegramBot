@@ -6,7 +6,7 @@ data class Word(
     var correctAnswersCount: Int = 0
 )
 
-fun main() {
+fun loadDictionary(): MutableList<Word> {
     val wordsFile = File("words.txt")
     val dictionary = mutableListOf<Word>()
 
@@ -18,6 +18,30 @@ fun main() {
         val word = Word(original, translate, correctAnswersCount)
         dictionary.add(word)
     }
+    return dictionary
+}
 
-    dictionary.forEach { println(it) }
+
+fun main() {
+    val dictionary = loadDictionary()
+
+    while (true) {
+        println("Меню:")
+        println("1. Учить слова")
+        println("2. Статистика")
+        println("0. Выход")
+
+        val input = readLine()
+
+        when (input) {
+            "1" -> println("Выбран пункт 'Учить слова'")
+            "2" -> println("Выбран пункт 'Статистика'")
+            "0" -> {
+                println("Выход из программы.")
+                break
+            }
+            else -> println("Введите число 1, 2 или 0")
+        }
+        println()
+    }
 }

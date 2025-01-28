@@ -31,11 +31,18 @@ fun main() {
         println("2. Статистика")
         println("0. Выход")
 
+
         val input = readLine()
 
         when (input) {
             "1" -> println("Выбран пункт 'Учить слова'")
-            "2" -> println("Выбран пункт 'Статистика'")
+            "2" -> {
+                val learnedWords = dictionary.filter { it.correctAnswersCount >= 3 }
+                val totalCount = dictionary.size
+                val learnedCount = learnedWords.size
+                val percent = if (totalCount > 0) (learnedCount.toDouble() / totalCount * 100).toInt() else 0
+                println("Выучено $learnedCount из $totalCount слов | $percent%")
+            }
             "0" -> {
                 println("Выход из программы.")
                 break

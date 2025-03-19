@@ -6,17 +6,23 @@ data class Word(
     var correctAnswersCount: Int = 0
 )
 
+const val LEARNING_THRESHOLD = 3
+const val NUMBER_OF_QUESTION_WORDS = 4
+
 fun loadDictionary(): MutableList<Word> {
     val wordsFile = File("words.txt")
     val dictionary = mutableListOf<Word>()
 
-    wordsFile.readLines().forEach { line ->
-        val parts = line.split("|")
-        val original = parts[0].trim()
-        val translate = parts[1].trim()
-        val correctAnswersCount = parts.getOrNull(2)?.trim()?.toIntOrNull() ?: 0
-        val word = Word(original, translate, correctAnswersCount)
-        dictionary.add(word)
+    if (wordsFile.exists()) {
+        wordsFile.readLines().forEach { line ->
+            val parts = line.split("|")
+            if (parts.size >= 2) {
+                val original = parts[0].trim()
+                val translate = parts[1].trim()
+                val correctAnswersCount = parts.getOrNull(2)?.trim()?.toIntOrNull() ?: 0
+                dictionary.add(Word(original, translate, correctAnswersCount))
+            }
+        }
     }
     return dictionary
 }
@@ -52,7 +58,8 @@ fun main() {
                     println()
                     println("${correctAnswer.original}:")
 
-                    questionWords.shuffled().forEachIndexed { index, word ->
+                    val shuffledQuestionWords = questionWords.shuffled()
+                    shuffledQuestionWords.forEachIndexed { index, word ->
                         println(" ${index + 1} - ${word.translate}")
                     }
 
@@ -90,16 +97,11 @@ fun main() {
                 val percent = if (totalCount > 0) (learnedCount.toDouble() / totalCount * 100).toInt() else 0
                 println("Выучено $learnedCount из $totalCount слов | $percent%")
             }
-
             "0" -> {
                 println("Выход из программы.")
                 break
             }
-
             else -> println("Введите число 1, 2 или 0")
         }
     }
 }
-
-const val LEARNING_THRESHOLD = 3
-const val NUMBER_OF_QUESTION_WORDS = 4

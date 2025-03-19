@@ -98,7 +98,7 @@ fun main() {
                 println("Выучено $learnedCount из $totalCount слов | $percent%")
             }
             "0" -> {
-                println("Выход из программы.")
+                println("Выход из программы")
                 break
             }
             else -> println("Введите число 1, 2 или 0")

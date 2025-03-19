@@ -19,8 +19,15 @@ fun loadDictionary(): MutableList<Word> {
             if (parts.size >= 2) {
                 val original = parts[0].trim()
                 val translate = parts[1].trim()
-                val correctAnswersCount = parts.getOrNull(2)?.trim()?.toIntOrNull() ?: 0
-                dictionary.add(Word(original, translate, correctAnswersCount))
+
+                if (original.isNotEmpty() && translate.isNotEmpty()) {
+                    val correctAnswersCount = parts.getOrNull(2)?.trim()?.toIntOrNull() ?: 0
+                    dictionary.add(Word(original, translate, correctAnswersCount))
+                } else {
+                    println("Предупреждение: Пропущена некорректная строка в words.txt: $line")
+                }
+            } else {
+                println("Предупреждение: Пропущена некорректная строка в words.txt: $line")
             }
         }
     }
@@ -29,79 +36,115 @@ fun loadDictionary(): MutableList<Word> {
 
 fun saveDictionary(dictionary: List<Word>) {
     val wordsFile = File("words.txt")
-    wordsFile.writeText(dictionary.joinToString("\n") { "${it.original}|${it.translate}|${it.correctAnswersCount}" })
+    try {
+        wordsFile.writeText(dictionary.joinToString("\n") { "${it.original}|${it.translate}|${it.correctAnswersCount}" })
+    } catch (e: Exception) {
+        println("Ошибка при сохранении словаря: ${e.message}")
+    }
 }
 
 fun main() {
     val dictionary = loadDictionary()
 
+    if (dictionary.isEmpty()) {
+        println("Словарь пуст. Добавьте слова в файл words.txt в формате 'оригинал|перевод'.")
+    }
+
     while (true) {
         println("Меню:")
         println("1. Учить слова")
         println("2. Статистика")
+        println("3. Добавить слово")
         println("0. Выход")
 
         val input = readLine()
+
         when (input) {
-            "1" -> {
-                while (true) {
-                    val notLearnedList = dictionary.filter { it.correctAnswersCount < LEARNING_THRESHOLD }
-                    if (notLearnedList.isEmpty()) {
-                        println("Все слова в словаре выучены")
-                        break
-                    }
+            null -> {
+                println("Ошибка ввода. Выход из программы.")
+                return
+            }
 
-                    val questionWords = notLearnedList.shuffled().take(NUMBER_OF_QUESTION_WORDS)
-                    val correctAnswer = questionWords.random()
-                    val correctAnswerId = questionWords.indexOf(correctAnswer) + 1
+            else -> when (input) {
+                "1" -> {
+                    while (true) {
+                        val notLearnedList = dictionary.filter { it.correctAnswersCount < LEARNING_THRESHOLD }
+                        if (notLearnedList.isEmpty()) {
+                            println("Все слова в словаре выучены")
+                            break
+                        }
 
-                    println()
-                    println("${correctAnswer.original}:")
+                        val questionWords = notLearnedList.shuffled().take(NUMBER_OF_QUESTION_WORDS)
+                        val correctAnswer = questionWords.random()
+                        val correctAnswerId = questionWords.indexOf(correctAnswer) + 1
 
-                    val shuffledQuestionWords = questionWords.shuffled()
-                    shuffledQuestionWords.forEachIndexed { index, word ->
-                        println(" ${index + 1} - ${word.translate}")
-                    }
+                        println()
+                        println("${correctAnswer.original}:")
 
-                    println("0 - Меню")
+                        val shuffledQuestionWords = questionWords.shuffled()
+                        shuffledQuestionWords.forEachIndexed { index, word ->
+                            println(" ${index + 1} - ${word.translate}")
+                        }
 
-                    val answerInput = readLine()
+                        println("0 - Меню")
 
-                    try {
-                        val answer = answerInput?.toIntOrNull()
-
-                        if (answer == 0) break
-
-                        if (answer != null && answer in 1..NUMBER_OF_QUESTION_WORDS) {
-                            if (answer == correctAnswerId) {
-                                correctAnswer.correctAnswersCount++
-                                println("Правильно!")
-                                saveDictionary(dictionary)
-                            } else {
-                                println("Неправильно! ${correctAnswer.original} - это ${correctAnswer.translate}")
+                        when (val answerInput = readlnOrNull()) {
+                            null -> {
+                                println("Ошибка ввода. Возврат в меню.")
+                                break // Возврат в главное меню
                             }
 
-                        } else {
-                            println("Пожалуйста, введите число от 0 до $NUMBER_OF_QUESTION_WORDS")
+                            else -> {
+                                when (val answer = answerInput.toIntOrNull()) {
+                                    0 -> break  // Выход из режима обучения
+                                    in 1..NUMBER_OF_QUESTION_WORDS -> {
+                                        if (answer == correctAnswerId) {
+                                            correctAnswer.correctAnswersCount++
+                                            println("Правильно!")
+                                            saveDictionary(dictionary)
+                                        } else {
+                                            println("Неправильно! ${correctAnswer.original} - это ${correctAnswer.translate}")
+                                        }
+                                    }
+
+                                    else -> println("Пожалуйста, введите число от 0 до $NUMBER_OF_QUESTION_WORDS")
+                                }
+                            }
                         }
-                    } catch (e: NumberFormatException) {
-                        println("Неверный формат ввода. Введите число.")
                     }
                 }
-            }
 
-            "2" -> {
-                val learnedWords = dictionary.filter { it.correctAnswersCount >= LEARNING_THRESHOLD }
-                val totalCount = dictionary.size
-                val learnedCount = learnedWords.size
-                val percent = if (totalCount > 0) (learnedCount.toDouble() / totalCount * 100).toInt() else 0
-                println("Выучено $learnedCount из $totalCount слов | $percent%")
+                "2" -> {
+                    val learnedWords = dictionary.filter { it.correctAnswersCount >= LEARNING_THRESHOLD }
+                    val totalCount = dictionary.size
+                    val learnedCount = learnedWords.size
+                    val remainingCount = totalCount - learnedCount
+                    val percent = if (totalCount > 0) (learnedCount.toDouble() / totalCount * 100).toInt() else 0
+                    println("Выучено $learnedCount из $totalCount слов ($percent%). Осталось выучить: $remainingCount")
+                }
+
+                "3" -> {
+                    println("Введите слово на оригинальном языке:")
+                    val original = readlnOrNull()?.trim()
+                    println("Введите перевод:")
+                    val translate = readlnOrNull()?.trim()
+
+                    if (original != null && translate != null && original.isNotEmpty() && translate.isNotEmpty()) {
+                        dictionary.add(Word(original, translate))
+                        saveDictionary(dictionary)
+                        println("Слово '$original' добавлено в словарь.")
+                    } else {
+                        println("Ошибка: Некорректный ввод. Слово не добавлено.")
+                    }
+                }
+
+                "0" -> {
+                    println("Выход из программы.")
+                    return
+                }
+
+                else -> println("Введите число 1, 2, 3 или 0")
             }
-            "0" -> {
-                println("Выход из программы")
-                break
-            }
-            else -> println("Введите число 1, 2 или 0")
         }
     }
 }

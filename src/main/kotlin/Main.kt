@@ -91,12 +91,12 @@ fun main() {
                         when (val answerInput = readlnOrNull()) {
                             null -> {
                                 println("Ошибка ввода. Возврат в меню.")
-                                break // Возврат в главное меню
+                                break
                             }
 
                             else -> {
                                 when (val answer = answerInput.toIntOrNull()) {
-                                    0 -> break  // Выход из режима обучения
+                                    0 -> break
                                     in 1..NUMBER_OF_QUESTION_WORDS -> {
                                         if (answer == correctAnswerId) {
                                             correctAnswer.correctAnswersCount++
